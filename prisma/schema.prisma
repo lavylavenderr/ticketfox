@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// I used Prisma Accelerate as to not query the database every single time: https://console.prisma.io
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("REAL_DATABASE_URL")
+}
+
+model Ticket {
+  id Int @id @default(autoincrement())
+
+  owner String
+  roles String[]
+
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  participants String[]
+  status       TicketStatus @default(OPEN)
+
+  createdAt DateTime  @default(now())
+  closedAt  DateTime?
+}
+
+model Server {
+  serverId String @unique
+
+  adminRoles  String[]
+  ticketCount Int        @default(0)
+  categories  Category[]
+
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id Int @id @unique @default(autoincrement())
+
+  server   Server @relation(fields: [serverId], references: [serverId])
+  serverId String
+
+  categoryName String
+  categoryId   String
+  supportRoles String[]
+
+  tickets Ticket[]
+}
+
+enum TicketStatus {
+  OPEN
+  LOCKED
+  CLOSED
+}
